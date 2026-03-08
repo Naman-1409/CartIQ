@@ -1,0 +1,100 @@
+import { PlatformCart } from "@/app/results/[searchId]/page";
+
+const PLATFORM_COLORS: Record<string, { bg: string; text: string }> = {
+  blinkit: { bg: "from-yellow-500/20 to-yellow-900/10", text: "text-yellow-400" },
+  zepto: { bg: "from-purple-500/20 to-purple-900/10", text: "text-purple-400" },
+  bigbasket: { bg: "from-green-500/20 to-green-900/10", text: "text-green-400" },
+};
+
+// Fallback search URLs if a specific product link fails
+const PLATFORM_CHECKOUT_BASE: Record<string, string> = {
+  blinkit: "https://blinkit.com/",
+  zepto: "https://www.zeptonow.com/",
+  bigbasket: "https://www.bigbasket.com/",
+};
+
+export default function WinnerBanner({
+  winner,
+  platforms,
+}: {
+  winner: string;
+  platforms: PlatformCart[];
+}) {
+  const winnerPlatform = platforms.find((p) => p.platform === winner);
+  if (!winnerPlatform) return null;
+
+  const sorted = [...platforms].sort((a, b) => a.total_payable - b.total_payable);
+  const colors = PLATFORM_COLORS[winner] || { bg: "from-emerald-500/20", text: "text-emerald-400" };
+  const savings = sorted.length > 1 ? sorted[sorted.length - 1].total_payable - sorted[0].total_payable : 0;
+
+  // Find direct product link for the main item if available
+  const firstAvailableItem = winnerPlatform.items.find(i => i.available && i.product_url);
+  const checkoutUrl = firstAvailableItem?.product_url || PLATFORM_CHECKOUT_BASE[winner] || "#";
+
+  return (
+    <div
+      className={`rounded-3xl bg-gradient-to-br ${colors.bg} border-2 border-emerald-500/40 p-8 animate-slide-up shadow-2xl shadow-emerald-500/10 backdrop-blur-md relative overflow-hidden`}
+    >
+      {/* Decorative background element */}
+      <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl animate-bounce">🏆</span>
+            <span className="text-xs uppercase tracking-[0.2em] text-emerald-400 font-extrabold bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-500/30">
+              Optimal Choice Found
+            </span>
+          </div>
+
+          <div>
+            <h2 className="text-3xl md:text-4xl font-black text-white leading-tight" style={{ fontFamily: "var(--font-outfit)" }}>
+              <span className={colors.text}>{winnerPlatform.platform_display}</span> is your best bet
+            </h2>
+            <p className="text-gray-300 text-lg mt-2 font-medium">
+              Total Payable: <span className="text-white font-black text-2xl">₹{winnerPlatform.total_payable.toFixed(0)}</span>
+              {savings > 0 && (
+                <span className="ml-3 inline-flex items-center gap-1.5 text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-lg">
+                  <span className="text-sm">⚡</span> Save ₹{savings.toFixed(0)}
+                </span>
+              )}
+            </p>
+          </div>
+
+          {/* Comparison mini-table */}
+          <div className="flex flex-wrap items-center gap-6 mt-6 pt-6 border-t border-white/10">
+            {sorted.map((p, i) => (
+              <div key={p.platform} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${i === 0 ? "bg-white/10 scale-105" : "opacity-60"} `}>
+                <span className="text-lg">
+                  {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
+                </span>
+                <div>
+                  <p className="text-white text-xs font-bold leading-none">{p.platform_display}</p>
+                  <p className="text-gray-400 text-[10px] mt-1">₹{p.total_payable.toFixed(0)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <a
+            href={checkoutUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="winner-checkout-btn"
+            className="group relative flex-shrink-0 flex items-center justify-center gap-3 bg-white text-black hover:bg-emerald-50 transition-all duration-300 active:scale-95 shadow-xl shadow-white/10 px-10 py-5 rounded-2xl font-black text-lg overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10 flex items-center gap-2">
+              Instant Purchase <span className="text-2xl transition-transform group-hover:translate-x-1">→</span>
+            </span>
+          </a>
+          <p className="text-center text-[10px] text-gray-500 font-medium uppercase tracking-widest">
+            Secure Transaction on {winnerPlatform.platform_display}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,7 @@
 {
   "name": "api-gateway",
   "version": "1.0.0",
-  "description": "QuickCart API Gateway — orchestrates LLM parsing, scraping and SSE streaming",
+  "description": "CartIQ API Gateway — orchestrates LLM parsing, scraping and SSE streaming",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",

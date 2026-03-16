@@ -269,7 +269,15 @@ async def _extract_first_product_zepto(page, item) -> Optional[dict]:
                     
             return match_count + starts_with_bonus + piece_bonus
         
-        best = max(products, key=score)
+        # Filter out products that have 0 matching keywords to avoid random garbage 
+        # (like "Modelling Dough" when searching for "aloo")
+        valid_products = [p for p in products if sum(1 for w in query_words if w in p["name"].lower()) > 0]
+        
+        if not valid_products:
+            print(f"[Zepto] No products found containing query keywords: {query_words}")
+            return None
+
+        best = max(valid_products, key=score)
         return {
             "name": best["name"][:60],
             "price": best["price"],

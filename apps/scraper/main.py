@@ -12,7 +12,7 @@ from routes.scrape import router as scrape_router
 load_dotenv()
 
 app = FastAPI(
-    title="QuickCart Scraper Service",
+    title="CartIQ Scraper Service",
     description="LLM-powered Query Parser + Platform Scrapers",
     version="1.0.0"
 )

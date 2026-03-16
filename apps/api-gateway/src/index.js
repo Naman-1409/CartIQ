@@ -1,5 +1,5 @@
 /**
- * QuickCart API Gateway — Main Server
+ * CartIQ API Gateway — Main Server
  * Orchestrates NL query parsing, scraping dispatch, and SSE streaming
  */
 require('dotenv').config();
@@ -50,6 +50,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 QuickCart API Gateway running on http://localhost:${PORT}`);
+  console.log(`\n🚀 CartIQ API Gateway running on http://localhost:${PORT}`);
   console.log(`📡 SSE Stream endpoint: http://localhost:${PORT}/api/v1/stream/:search_id`);
 });

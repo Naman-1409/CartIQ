@@ -249,8 +249,14 @@ async def _extract_first_product_blinkit(page, item) -> Optional[dict]:
             match_count = sum(1 for w in query_words if w in n)
             starts_with_bonus = 0.5 if any(n.startswith(w) for w in query_words) else 0
             return match_count + starts_with_bonus
+            
+        valid_products = [p for p in products if sum(1 for w in query_words if w in p["name"].lower()) > 0]
         
-        best = max(products, key=score)
+        if not valid_products:
+            print(f"[Blinkit] No products found containing query keywords: {query_words}")
+            return None
+        
+        best = max(valid_products, key=score)
         return {
             "name": best["name"][:60],
             "price": best["price"],

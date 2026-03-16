@@ -1,11 +1,11 @@
 #!/bin/bash
-# QuickCart — Start all services
+# CartIQ — Start all services
 # Run this from the "Minor 2" project root: bash start.sh
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo ""
-echo "🛒 Starting QuickCart..."
+echo "🛒 Starting CartIQ..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # ── Kill any existing processes on our ports ──────────────────────────────────

@@ -360,8 +360,13 @@ def _score_and_pick(products, query_words, item):
                 piece_bonus = 5.0 # Huge bonus for exact piece match (e.g., 6 pcs for 6 requested)
                 
         return match_count + starts_with_bonus + piece_bonus
+        
+    valid_products = [p for p in unique if sum(1 for w in query_words if w in p["name"].lower()) > 0]
+    if not valid_products:
+        print(f"[BigBasket] No products found containing query keywords: {query_words}")
+        return None
     
-    best = max(unique, key=score)
+    best = max(valid_products, key=score)
     clean_name = " ".join(best["name"].split())[:60]
     return {
         "name": clean_name,

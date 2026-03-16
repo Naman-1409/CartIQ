@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -15,7 +16,28 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="bg-gray-950 text-white antialiased" suppressHydrationWarning>{children}</body>
+      {/* Prevent theme flash — runs before React hydrates */}
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var t = localStorage.getItem('qc-theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+              } catch(e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+              }
+            `,
+          }}
+        />
+      </head>
+      <body className="antialiased" suppressHydrationWarning>
+        {/* Global theme toggle — fixed top-right on every page */}
+        <div className="fixed top-4 right-4 z-[200]">
+          <ThemeToggle />
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

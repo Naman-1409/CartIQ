@@ -1,4 +1,6 @@
+"use client";
 import { PlatformCart } from "@/app/results/[searchId]/page";
+import { useTheme } from "@/hooks/useTheme";
 
 const PLATFORM_ICONS: Record<string, string> = {
   blinkit: "🟡",
@@ -24,6 +26,7 @@ export default function PlatformColumn({
   isWinner: boolean;
   animationDelay: number;
 }) {
+  const theme = useTheme();
   // Build a search query from all item names for the platform URL
   const searchQuery = platform.items
     .filter((i) => i.available)
@@ -150,8 +153,11 @@ export default function PlatformColumn({
           disabled={!platform.all_items_available && platform.item_total === 0}
           className={`w-full flex items-center justify-center gap-2 font-bold py-3.5 px-4 rounded-xl text-sm transition-all duration-200 active:scale-95 shadow-lg ${isWinner
             ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30"
-            : "bg-gray-800 hover:bg-gray-700 text-gray-200"
+            : theme === "light"
+              ? "text-[#ffffff]"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-200"
             } ${(!platform.all_items_available && platform.item_total === 0) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          style={!isWinner && theme === "light" ? { background: "#1e293b", color: "#ffffff" } : undefined}
         >
           {isWinner ? "Order Now" : `Shop on ${platform.platform_display}`} →
         </button>

@@ -78,6 +78,15 @@ export default function SearchPage() {
 
   return (
     <main className="gradient-mesh min-h-screen flex flex-col items-center justify-center px-4">
+      {/* ── Animated background orbs ── */}
+      <div className="bg-orb bg-orb-1" />
+      <div className="bg-orb bg-orb-2" />
+      <div className="bg-orb bg-orb-3" />
+      <div className="bg-orb bg-orb-4" />
+      <div className="bg-grid" />
+
+      {/* All content sits above the orbs */}
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
       {/* Logo / Header */}
       <div className="mb-10 text-center animate-slide-up">
         <div className="inline-flex items-center gap-3 mb-4">
@@ -196,9 +205,9 @@ export default function SearchPage() {
         style={{ animationDelay: "0.3s" }}
       >
         {[
-          { icon: "⚡", label: "Real-time prices", desc: "Live data from all platforms" },
-          { icon: "🎯", label: "Exact cart total", desc: "Includes delivery & surge fees" },
-          { icon: "🔗", label: "Instant checkout", desc: "One click to the cheapest app" },
+          { icon: "📡", label: "Real-time prices", desc: "Live data from all platforms" },
+          { icon: "🧾", label: "Exact cart total", desc: "Includes delivery & surge fees" },
+          { icon: "🚀", label: "Instant checkout", desc: "One click to the cheapest app" },
         ].map((f) => (
           <div key={f.label} className="text-center p-4 rounded-2xl bg-gray-900/60 border border-gray-800/50">
             <div className="text-2xl mb-2">{f.icon}</div>
@@ -207,6 +216,7 @@ export default function SearchPage() {
           </div>
         ))}
       </div>
+      </div> {/* end z-10 wrapper */}
     </main>
   );
 }

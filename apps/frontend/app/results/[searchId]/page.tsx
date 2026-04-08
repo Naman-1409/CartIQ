@@ -49,23 +49,33 @@ const STATUS_MESSAGES: Record<string, string> = {
   scraping: "🔍 Checking prices across all platforms...",
 };
 
+import { useAuth } from "@/context/AuthContext";
+
 export default function ResultsPage() {
   const { searchId } = useParams() as { searchId: string };
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, token, loading: authLoading } = useAuth();
   const query = searchParams.get("query") || "";
   const [state, setState] = useState<ProgressState>({ status: "connecting" });
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    if (!searchId) return;
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (!searchId || authLoading || !user) return;
     let retryCount = 0;
     const maxRetries = 5;
     let es: EventSource;
 
     const connect = () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      es = new EventSource(`${apiUrl}/api/v1/stream/${searchId}`);
+      // EventSource doesn't support headers, so we pass token in query param
+      es = new EventSource(`${apiUrl}/api/v1/stream/${searchId}?token=${token}`);
       esRef.current = es;
 
       es.addEventListener("progress", (e) => {
@@ -109,6 +119,14 @@ export default function ResultsPage() {
     return () => es?.close();
   }, [searchId, state.status]);
 
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <main className="gradient-mesh min-h-screen px-4 py-8">
       {/* Header */}
@@ -116,46 +134,63 @@ export default function ResultsPage() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => router.push("/")}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-medium transition-colors text-sm bg-white border border-slate-200 shadow-sm rounded-full px-4 py-2"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
           >
             ← Back
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: "var(--font-outfit)" }}>
-              Cart<span className="text-violet-600">IQ</span>
+            <span className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+              Quick<span className="text-violet-400">Cart</span>
             </span>
           </div>
-          <div className="w-24" />
+
+          <div className="flex items-center gap-4 animate-fade-in">
+            <div className="flex flex-col items-end">
+              <span className="text-white text-sm font-semibold">{user.name || user.phone}</span>
+              <button 
+                onClick={() => {
+                  const { logout } = require("@/context/AuthContext").useAuth();
+                  logout();
+                }}
+                className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-lg">
+              👤
+            </div>
+          </div>
         </div>
 
         {query && (
-          <div className="mt-8 text-center animate-slide-up">
-            <p className="text-slate-500 text-sm font-semibold mb-1 uppercase tracking-wider">Results for</p>
-            <p className="text-slate-800 text-xl font-bold">&quot;{query}&quot;</p>
+          <div className="mt-6 text-center">
+            <p className="text-gray-400 text-sm mb-1">Results for</p>
+            <p className="text-white text-lg font-medium">&quot;{query}&quot;</p>
           </div>
         )}
       </div>
 
       {/* Status Banner (connecting / parsing / scraping) */}
       {state.status !== "complete" && state.status !== "error" && (
-        <div className="max-w-6xl mx-auto mb-8">
-          <div className="flex items-center gap-4 bg-white border border-slate-200 shadow-sm rounded-2xl px-6 py-5 w-full max-w-2xl mx-auto">
-            <span className="w-5 h-5 border-2 border-violet-200 border-t-violet-600 rounded-full animate-spin flex-shrink-0" />
-            <span className="text-slate-700 font-semibold text-lg">
+        <div className="max-w-6xl mx-auto mb-6">
+          <div className="flex items-center gap-3 bg-gray-900/80 border border-gray-700/50 rounded-2xl px-5 py-4">
+            <span className="w-5 h-5 border-2 border-violet-400/30 border-t-violet-400 rounded-full animate-spin flex-shrink-0" />
+            <span className="text-gray-300">
               {state.message || STATUS_MESSAGES[state.status]}
             </span>
           </div>
 
           {/* Parsed items preview */}
           {state.items && (
-            <div className="mt-6 flex flex-wrap gap-2 justify-center max-w-3xl mx-auto">
+            <div className="mt-4 flex flex-wrap gap-2 justify-center">
               {state.items.map((item) => (
                 <span
                   key={item.name}
-                  className="text-sm font-medium bg-slate-100 border border-slate-200 rounded-full px-4 py-1.5 text-slate-700 shadow-sm"
+                  className="text-sm bg-gray-800/70 border border-gray-700/40 rounded-full px-3 py-1 text-gray-300"
                 >
-                  <span className="text-violet-600 font-bold mr-1">{item.quantity}×</span> {item.brand ? `${item.brand} ` : ""}{item.name}
-                  {item.weight ? <span className="text-slate-400 ml-1">({item.weight})</span> : ""}
+                  {item.quantity}× {item.brand ? `${item.brand} ` : ""}{item.name}
+                  {item.weight ? ` (${item.weight})` : ""}
                 </span>
               ))}
             </div>
@@ -165,13 +200,13 @@ export default function ResultsPage() {
 
       {/* Error State */}
       {state.status === "error" && (
-        <div className="max-w-lg mx-auto text-center py-24 bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 mt-10">
-          <div className="text-6xl mb-6">😕</div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-3">Something went wrong</h2>
-          <p className="text-slate-500 mb-8 max-w-sm mx-auto">{state.error}</p>
+        <div className="max-w-lg mx-auto text-center py-20">
+          <div className="text-5xl mb-4">😕</div>
+          <h2 className="text-xl font-semibold text-white mb-2">Something went wrong</h2>
+          <p className="text-gray-400 mb-6">{state.error}</p>
           <button
             onClick={() => router.push("/")}
-            className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3.5 rounded-2xl shadow-md transition-all active:scale-95"
+            className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
           >
             Try Again
           </button>
@@ -205,7 +240,7 @@ export default function ResultsPage() {
           </div>
 
           {state.data.from_cache && (
-            <p className="text-center text-slate-400 font-medium text-xs mt-8 pb-8">
+            <p className="text-center text-gray-600 text-xs mt-6">
               ⚡ Served from cache · Prices refreshed in the last 5 minutes
             </p>
           )}

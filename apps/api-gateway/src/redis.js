@@ -64,6 +64,9 @@ const redisProxy = {
       return memoryStore.delete(key);
     }
   },
+  setex: async (key, duration, value) => {
+    return redisProxy.set(key, value, 'EX', duration);
+  },
   status: redisClient.status
 };
 

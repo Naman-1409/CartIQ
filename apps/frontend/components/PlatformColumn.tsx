@@ -23,6 +23,7 @@ export default function PlatformColumn({
   platform,
   isWinner,
   animationDelay,
+  searchId,
 }: {
   platform: PlatformCart;
   isWinner: boolean;
@@ -63,8 +64,8 @@ export default function PlatformColumn({
         setSyncSuccess(true);
         setTimeout(() => setSyncSuccess(false), 5000);
       }
-    } catch (err) {
-      alert("Network error occurred while syncing cart.");
+    } catch (err: any) {
+      alert(`Network error occurred while syncing cart: ${err.message || err}`);
     } finally {
       setSyncing(false);
     }
@@ -171,8 +172,8 @@ export default function PlatformColumn({
       <div className="px-6 py-5">
         {["zepto", "blinkit", "bigbasket"].includes(platform.platform) ? (
           <button
+            type="button"
             onClick={handleSyncCart}
-            id={`sync-${platform.platform}`}
             disabled={(!platform.all_items_available && platform.item_total === 0) || syncing}
             className={`w-full flex items-center justify-center gap-2 font-bold py-3.5 px-4 rounded-xl text-sm transition-all duration-200 active:scale-95 shadow-lg ${isWinner
               ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30"
@@ -186,8 +187,8 @@ export default function PlatformColumn({
           </button>
         ) : (
           <button
+            type="button"
             onClick={handleCheckout}
-            id={`checkout-${platform.platform}`}
             disabled={!platform.all_items_available && platform.item_total === 0}
             className={`w-full flex items-center justify-center gap-2 font-bold py-3.5 px-4 rounded-xl text-sm transition-all duration-200 active:scale-95 shadow-lg ${isWinner
               ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30"

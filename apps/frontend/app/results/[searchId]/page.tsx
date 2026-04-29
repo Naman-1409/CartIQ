@@ -117,7 +117,43 @@ export default function ResultsPage() {
     connect();
 
     return () => es?.close();
-  }, [searchId, state.status]);
+  }, [searchId, state.status, token]);
+
+  // Listen for real-time fee updates from the Chrome Extension
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.source === 'cartiq-extension' && event.data?.type === 'CART_PROGRESS_UPDATE') {
+        const payload = event.data.payload;
+        if (payload?.fees && payload?.platform) {
+          setState((prevState) => {
+            if (prevState.status !== 'complete' || !prevState.data) return prevState;
+            
+            // Deep clone the data to avoid mutating state directly
+            const newData = { ...prevState.data };
+            newData.platforms = newData.platforms.map((p) => {
+              if (p.platform === payload.platform) {
+                return {
+                  ...p,
+                  delivery_fee: payload.fees.delivery_fee ?? p.delivery_fee,
+                  handling_fee: payload.fees.handling_fee ?? p.handling_fee,
+                  total_payable: payload.fees.total_payable ?? p.total_payable,
+                  estimated_delivery_min: payload.fees.estimated_delivery_min ?? p.estimated_delivery_min,
+                };
+              }
+              return p;
+            });
+            
+            // Optionally recalculate winner if total_payable changed significantly
+            // but for now, just updating the UI is enough.
+            return { ...prevState, data: newData };
+          });
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   if (authLoading || !user) {
     return (

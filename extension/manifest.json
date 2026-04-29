@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "RecipeCart",
+  "version": "2.0.0",
+  "description": "Auto-add grocery ingredients to cart from comparison table",
+  "permissions": ["tabs", "storage", "scripting", "activeTab", "alarms"],
+  "host_permissions": [
+    "https://blinkit.com/*",
+    "https://www.zeptonow.com/*",
+    "https://zepto.com/*",
+    "https://www.bigbasket.com/*",
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
+    "http://localhost:3001/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://blinkit.com/*"],
+      "js": ["content/cartRunner.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.zeptonow.com/*", "https://zepto.com/*"],
+      "js": ["content/cartRunner.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.bigbasket.com/*"],
+      "js": ["content/cartRunner.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"],
+      "js": ["content/webBridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:3000/*",
+      "http://localhost:3001/*",
+      "https://yourapp.com/*"
+    ]
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

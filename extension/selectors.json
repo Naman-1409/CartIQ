@@ -1,0 +1,23 @@
+{
+  "blinkit": {
+    "addButton": "button[class*='AddToCart__UpdatedAddButton'], button[class*='AddToCart']",
+    "increaseQty": "button[class*='Quantity__Button']:last-child, button[class*='plus'], [aria-label*='increase']",
+    "cartUrl": "https://blinkit.com/checkout/",
+    "waitForSelector": "[class*='ProductVariants'], [class*='product-detail']",
+    "productLoadedSignal": "[class*='ProductName'], h1"
+  },
+  "zepto": {
+    "addButton": "button[class*='AddToCart'], button[class*='add-btn'], [class*='AddButton']",
+    "increaseQty": "button[class*='IncreaseQty'], button[class*='Plus'], [aria-label*='increase']",
+    "cartUrl": "https://www.zeptonow.com/cart",
+    "waitForSelector": "[class*='ProductDetailPage'], [class*='product-page']",
+    "productLoadedSignal": "[class*='ProductName'], h1"
+  },
+  "bigbasket": {
+    "addButton": "button[qa='btn-add'], button[class*='AddToBasket'], .add-to-basket",
+    "increaseQty": "button[qa='btn-plus'], button[class*='increase']",
+    "cartUrl": "https://www.bigbasket.com/basket/",
+    "waitForSelector": "[class*='ProductDetailPage'], .prod-detail",
+    "productLoadedSignal": ".prod-name, h1"
+  }
+}

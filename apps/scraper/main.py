@@ -11,7 +11,8 @@ from routes.scrape import router as scrape_router
 from routes.auth import router as auth_router
 from routes.checkout import router as checkout_router
 
-load_dotenv()
+env_path = os.path.join(os.path.dirname(__file__), '../../.env')
+load_dotenv(env_path)
 
 from playwright.async_api import async_playwright
 from contextlib import asynccontextmanager

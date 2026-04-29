@@ -27,7 +27,7 @@ PLATFORM_CONFIGS = {
         "login_trigger": "button[aria-label='login'], button:has-text('Login')",
         "phone_input": "input[type='tel'], input[placeholder*='mobile']",
         "continue_btn": "button:has-text('Continue')",
-        "otp_input_selector": "input[type='text'], input[maxLength='6']",
+        "otp_input_selector": "input[autocomplete='one-time-code'], input[type='number'], input[type='tel'], input[maxlength='1']",
         "verify_btn": "button:has-text('Verify'), button:has-text('Submit')",
         "otp_len": 6
     },
@@ -507,11 +507,35 @@ async def verify_otp(platform: str, request: VerifyRequest):
         # 1.5 Fill the OTP digits
         try:
             if config.get("otp_input_selector"):
-                otp_input = target_frame.locator(config["otp_input_selector"]).first
-                await otp_input.wait_for(state="visible", timeout=8000)
-                await otp_input.scroll_into_view_if_needed()
-                await otp_input.click(force=True)
-                await otp_input.type(str(request.otp), delay=100)
+                await target_frame.wait_for_selector(config["otp_input_selector"], state="visible", timeout=8000)
+                otp_inputs = await target_frame.query_selector_all(config["otp_input_selector"])
+                
+                # Filter out hidden/disabled inputs
+                otp_inputs = [inp for inp in otp_inputs if await inp.is_visible() and not await inp.is_disabled()]
+
+                if len(otp_inputs) >= config.get("otp_len", 1):
+                    # Multi-input OTP fields (e.g. 6 separate boxes)
+                    print(f"[Auth] Found {len(otp_inputs)} OTP input fields. Typing split digits...")
+                    for i, char in enumerate(str(request.otp)):
+                        if i < len(otp_inputs):
+                            await otp_inputs[i].scroll_into_view_if_needed()
+                            await otp_inputs[i].click(force=True)
+                            
+                            # Clean up the input first to be safe
+                            await otp_inputs[i].fill("")
+                            await asyncio.sleep(0.1)
+                            
+                            await otp_inputs[i].type(char, delay=100)
+                            await asyncio.sleep(0.1)
+                elif len(otp_inputs) > 0:
+                    # Single input field
+                    print(f"[Auth] Found single OTP input field. Typing entire OTP...")
+                    otp_input = otp_inputs[0]
+                    await otp_input.scroll_into_view_if_needed()
+                    await otp_input.click(force=True)
+                    await otp_input.fill("")
+                    await otp_input.type(str(request.otp), delay=100)
+
                 print(f"[Auth] ✅ Typed OTP: {request.otp}")
                 await asyncio.sleep(1) # wait for framework to register OTP
         except Exception as e:

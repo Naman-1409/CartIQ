@@ -9,10 +9,11 @@ const router = express.Router();
 // 1. Send OTP
 router.post('/send-otp', async (req, res) => {
   try {
-    const { phone } = req.body;
+    let { phone } = req.body;
     if (!phone) {
       return res.status(400).json({ error: 'Phone number is required' });
     }
+    phone = phone.replace(/\s+/g, '');
 
     // Generate 6-digit random OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -28,7 +29,7 @@ router.post('/send-otp', async (req, res) => {
     console.log(`🔐 OTP for ${phone}: ${otp} (SMS Sent: ${sent})`);
     console.log(`--------------------------------------\n`);
 
-    if (!sent && process.env.NODE_ENV === 'production') {
+    if (!sent && process.env.TWILIO_ACCOUNT_SID) {
       return res.status(500).json({ error: 'Failed to send SMS OTP. Check server logs.' });
     }
 
@@ -43,10 +44,12 @@ router.post('/send-otp', async (req, res) => {
 // 2. Verify OTP
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { phone, otp, name } = req.body;
+    let { phone, otp, name } = req.body;
     if (!phone || !otp) {
       return res.status(400).json({ error: 'Phone and OTP are required' });
     }
+    phone = phone.replace(/\s+/g, '');
+    otp = otp.toString().replace(/\s+/g, '');
 
     // Check Redis
     const storedOtp = await redis.get(`otp:${phone}`);
